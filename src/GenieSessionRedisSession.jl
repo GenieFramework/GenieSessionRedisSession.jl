@@ -44,8 +44,8 @@ function write_session(params::Genie.Context.Params, session::GenieSession.Sessi
   iob64_encode = Base64EncodePipe(io)
   Serialization.serialize(iob64_encode, session)
   close(iob64_encode)
-
-  Jedis.get_global_client().set(session.id, String(take!(io)))
+  client = Jedis.get_global_client()
+  Jedis.set(session.id, String(take!(io)))
 end
 
 
@@ -63,8 +63,8 @@ function read(session_id::String) :: Union{Nothing,GenieSession.Session}
     seekstart(io)
     Serialization.deserialize(iob64_decode)
   catch ex
-    @error "Can't read session"
-    @error ex
+    @debug "Can't read session"
+    @debug ex
   end
 end
 
