@@ -12,7 +12,7 @@ using Jedis
 
 Persists the `Session` object to the cookie and returns it.
 """
-function write(params::Params) :: GenieSession.Session
+function GenieSession.write(params::Params) :: GenieSession.Session
   try
     write_session(params, params[:session])
 
@@ -44,8 +44,8 @@ function write_session(params::Genie.Context.Params, session::GenieSession.Sessi
   iob64_encode = Base64EncodePipe(io)
   Serialization.serialize(iob64_encode, session)
   close(iob64_encode)
-  client = Jedis.get_global_client()
-  Jedis.set(session.id, String(take!(io)))
+
+  Jedis.get_global_client().set(session.id, String(take!(io)))
 end
 
 
@@ -71,21 +71,6 @@ end
 
 #===#
 # IMPLEMENTATION
-
-"""
-    persist(s::Session) :: Session
-
-Generic method for persisting session data - delegates to the underlying `SessionAdapter`.
-"""
-function GenieSession.persist(req::GenieSession.HTTP.Request, res::GenieSession.HTTP.Response, params::Params) :: Tuple{GenieSession.HTTP.Request,GenieSession.HTTP.Response,Params}
-  write(params)
-
-  req, res, params
-end
-function GenieSession.persist(params::Genie.Context.Params) :: Genie.Context.Params
-  write(params)
-  params
-end
 
 
 """
